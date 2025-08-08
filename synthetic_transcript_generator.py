@@ -8,7 +8,7 @@ import os
 from threading import Lock
 
 fake = Faker()
-openai.api_key = "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"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 AGENT_IDS = ["A1", "A2", "A3", "A4", "A5"]
 SAVE_FILE = "transcripts.jsonl"
