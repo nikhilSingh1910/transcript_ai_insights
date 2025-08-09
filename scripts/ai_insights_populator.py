@@ -20,6 +20,7 @@ def compute_agent_talk_ratio(transcript: str) -> float:
     agent_lines = [line for line in transcript.splitlines() if line.startswith("**Customer Service Agent:**")]
     words_agent = sum(len(line.split()) for line in agent_lines)
     total_words = len(transcript.split())
+    
     return (words_agent / total_words) if total_words else 0.0
 
 def normalize_sentiment(label_score):

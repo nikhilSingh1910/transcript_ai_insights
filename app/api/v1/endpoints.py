@@ -34,14 +34,16 @@ def get_db():
 
 # Helper functions
 
-def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+def _cosine_similarity_calculator(a: np.ndarray, b: np.ndarray) -> float:
     """
     Compute cosine similarity between two embedding vectors.
     Returns 0.0 if either vector has zero length.
     """
     denom = (np.linalg.norm(a) * np.linalg.norm(b))
+
     if denom == 0.0:
         return 0.0
+
     return float(np.dot(a, b) / denom)
 
 def _to_np(vec):
@@ -92,6 +94,7 @@ def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
                     break
                 if len(ln.split()) <= 40:
                     nudges.append(ln)
+
             if nudges:
                 return nudges[:3]
         except Exception as e:
@@ -120,7 +123,7 @@ def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
 # API Endpoints 
 
 @router.get("/calls", response_model=CallListResponse)
-def list_calls(
+def get_all_calls(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     agent_id: str | None = None,
@@ -151,7 +154,7 @@ def list_calls(
         q = q.filter(Call.customer_sentiment_score <= max_sentiment)
 
     total = q.count()
-    rows = q.order_by(Call.start_time.desc().nullslast()).limit(limit).offset(offset).all()
+    rows = q.order_by(Call.start_time.desc()).limit(limit).offset(offset).all()
 
     items = [
         CallBase(
@@ -193,7 +196,7 @@ def get_call(call_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/calls/{call_id}/recommendations", response_model=RecommendationsResponse)
-def recommendations(call_id: str, db: Session = Depends(get_db)):
+def get_recommendations(call_id: str, db: Session = Depends(get_db)):
     """
     Find the top 5 most similar calls (based on cosine similarity of embeddings)
     and generate 3 coaching nudges for the agent.
@@ -209,7 +212,7 @@ def recommendations(call_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="invalid base embedding")
 
     # fetch other calls with embeddings
-    others: List[Call] = (
+    similar_calls: List[Call] = (
         db.query(Call)
         .filter(and_(Call.call_id != call_id, Call.embedding.isnot(None)))
         .limit(1000)
@@ -217,18 +220,18 @@ def recommendations(call_id: str, db: Session = Depends(get_db)):
     )
 
     scored: list[tuple[str, float]] = []
-    for c in others:
+    for c in similar_calls:
         vec = _to_np(c.embedding)
         if vec is None:
             continue
-        sim = _cosine_sim(base_vec, vec)
+        sim = _cosine_similarity_calculator(base_vec, vec)
         scored.append((str(c.call_id), sim))
 
     scored.sort(key=lambda x: x[1], reverse=True)
     top = scored[:5]
     rec_items = [RecommendationItem(call_id=cid, similarity=sim) for cid, sim in top]
 
-    nudges = _make_nudges(base, [c for c in others if str(c.call_id) in {cid for cid, _ in top}])
+    nudges = _make_nudges(base, [c for c in similar_calls if str(c.call_id) in {cid for cid, _ in top}])
 
     return RecommendationsResponse(
         base_call_id=str(base.call_id),
@@ -238,7 +241,7 @@ def recommendations(call_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/analytics/agents", response_model=AgentsLeaderboardResponse)
-def agents_leaderboard(db: Session = Depends(get_db)):
+def get_agents_leaderboard(db: Session = Depends(get_db)):
     """
     Return per-agent aggregated metrics:
     - Average customer sentiment

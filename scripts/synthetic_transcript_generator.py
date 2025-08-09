@@ -12,7 +12,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Simulated agent IDs (lets pretend these are our real call center agents)
 AGENT_IDS = ["A1", "A2", "A3", "A4", "A5"]
-SAVE_FILE = "transcripts.jsonl"
+DESTINATION_FILE = "transcripts.jsonl"
 
 # Thread lock to ensure only one thread writes to the file at a time
 file_lock = Lock()
@@ -71,7 +71,7 @@ def write_line_to_file(transcript):
     """
     line = json.dumps(transcript)
     with file_lock:
-        with open(SAVE_FILE, 'a') as f:
+        with open(DESTINATION_FILE, 'a') as f:
             f.write(line + "\n")
             f.flush()
     print(f"Saved transcript for call_id={transcript['call_id']}")
@@ -86,7 +86,8 @@ async def generate_synthetic_transcripts(num_transcripts=200):
         call_id = fake.uuid4()
         customer_id = fake.uuid4()
         agent_id = random.choice(AGENT_IDS)
-        tasks.append(generate_transcript_with_llm(call_id, customer_id, agent_id))
+        transcript = generate_transcript_with_llm(call_id, customer_id, agent_id)
+        tasks.append(transcript)
     await asyncio.gather(*tasks)
 
 async def main():

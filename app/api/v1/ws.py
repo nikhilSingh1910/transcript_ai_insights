@@ -32,7 +32,7 @@ async def ws_sentiment(websocket: WebSocket, call_id: str, db: Session = Depends
     value = float(base)
 
     try:
-        for _ in range(120):  # ~2 minutes at 1 Hz
+        for _ in range(120):  # once per second for ~2 minutes
             
             step = random.uniform(-0.08, 0.08)
             value = max(-1.0, min(1.0, value + step))
