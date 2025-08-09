@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from app.api.v1.endpoints import router as api_router
+from app.api.v1.ws import ws_router
 from app.core.scheduler import start_scheduler, shutdown_scheduler
 
 app = FastAPI(title="Call Analytics API", version="1.0.0")
 app.include_router(api_router)
+app.include_router(ws_router)
 
 @app.on_event("startup")
 def _startup():
