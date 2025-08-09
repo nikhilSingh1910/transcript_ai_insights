@@ -114,7 +114,6 @@ def client(db_session, monkeypatch) -> TestClient:
             pass
     app.dependency_overrides[ep.get_db] = override_get_db
 
-    # Ensure deterministic nudges by disable LLM in tests
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     return TestClient(app)

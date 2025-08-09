@@ -7,6 +7,9 @@ from app.models.call import Call
 DATA_PATH = "data/transcripts.jsonl"  # the location of transcripts json 
 
 def load_calls_into_db():
+    """
+    Populates the DB with the data in the json file
+    """
     session: Session = SessionLocal()
     try:
         with open(DATA_PATH, 'r') as f:

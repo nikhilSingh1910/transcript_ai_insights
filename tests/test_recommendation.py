@@ -14,5 +14,4 @@ def test_recommendations_ok(client):
     data = resp.json()
     assert data["base_call_id"] == call_id
     assert 0 <= len(data["recommendations"]) <= 5
-    # nudges are rule-based in tests (OPENAI_API_KEY unset)
     assert 1 <= len(data["coaching_nudges"]) <= 3

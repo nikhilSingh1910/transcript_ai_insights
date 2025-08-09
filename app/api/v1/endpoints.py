@@ -22,6 +22,7 @@ if OPENAI_API_KEY:
     except Exception:
         OPENAI_API_KEY = None
 
+# API router for all `/api/v1/calls` endpoints
 router = APIRouter(prefix="/api/v1", tags=["calls"])
 
 def get_db():
@@ -34,13 +35,20 @@ def get_db():
 # Helper functions
 
 def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
-    #  cosine similarity on float vectors (returns 0 if zero-norm)
+    """
+    Compute cosine similarity between two embedding vectors.
+    Returns 0.0 if either vector has zero length.
+    """
     denom = (np.linalg.norm(a) * np.linalg.norm(b))
     if denom == 0.0:
         return 0.0
     return float(np.dot(a, b) / denom)
 
 def _to_np(vec):
+    """
+    Convert a Python list (or similar) to a NumPy array of floats.
+    Returns None if conversion fails.
+    """
     try:
         return np.asarray(vec, dtype=np.float32)
     except Exception:
@@ -48,7 +56,7 @@ def _to_np(vec):
 
 def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
     """
-    ≤ 40 words each. If OPENAI_API_KEY is present, ask for 3 nudges; else rule-based.
+    Generate ≤ 3 short coaching nudges ≤ 40 words each. If OPENAI_API_KEY is present, ask for 3 nudges; else rule-based.
     """
     
     sent = call.customer_sentiment_score
@@ -122,6 +130,13 @@ def list_calls(
     max_sentiment: float | None = Query(None, ge=-1, le=1),
     db: Session = Depends(get_db),
 ):
+    """
+    Return a paginated list of calls.
+    Supports filtering by:
+    - agent_id
+    - date range
+    - sentiment score range
+    """
     q = db.query(Call)
 
     if agent_id:
@@ -157,6 +172,9 @@ def list_calls(
 
 @router.get("/calls/{call_id}", response_model=CallDetail)
 def get_call(call_id: str, db: Session = Depends(get_db)):
+    """
+    Fetch full details of a single call by its ID.
+    """
     call = db.query(Call).filter(Call.call_id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="call not found")
@@ -176,6 +194,10 @@ def get_call(call_id: str, db: Session = Depends(get_db)):
 
 @router.get("/calls/{call_id}/recommendations", response_model=RecommendationsResponse)
 def recommendations(call_id: str, db: Session = Depends(get_db)):
+    """
+    Find the top 5 most similar calls (based on cosine similarity of embeddings)
+    and generate 3 coaching nudges for the agent.
+    """
     base = db.query(Call).filter(Call.call_id == call_id).first()
     if not base:
         raise HTTPException(status_code=404, detail="call not found")
@@ -217,6 +239,13 @@ def recommendations(call_id: str, db: Session = Depends(get_db)):
 
 @router.get("/analytics/agents", response_model=AgentsLeaderboardResponse)
 def agents_leaderboard(db: Session = Depends(get_db)):
+    """
+    Return per-agent aggregated metrics:
+    - Average customer sentiment
+    - Average agent talk ratio
+    - Total number of calls
+    Sorted by number of calls (descending).
+    """
     # Aggregate by agent: avg sentiment, avg talk ratio, count
     rows = (
         db.query(

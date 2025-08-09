@@ -4,9 +4,13 @@ from app.api.v1.ws import ws_router
 from app.core.scheduler import start_scheduler, shutdown_scheduler
 
 app = FastAPI(title="Call Analytics API", version="1.0.0")
+# Attach the REST API routes (v1) to the app
 app.include_router(api_router)
+# Attach the WebSocket routes (for live sentiment streaming)
 app.include_router(ws_router)
 
+# --- Lifecycle Events ---
+# These functions run automatically when the app starts/stops.
 @app.on_event("startup")
 def _startup():
     start_scheduler()
@@ -15,6 +19,7 @@ def _startup():
 def _shutdown():
     shutdown_scheduler()
 
+# Simple health check endpoint
 @app.get("/healthz")
 def health():
     return {"status": "ok"}

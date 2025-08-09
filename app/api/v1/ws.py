@@ -19,6 +19,12 @@ def get_db():
 
 @ws_router.websocket("/ws/sentiment/{call_id}")
 async def ws_sentiment(websocket: WebSocket, call_id: str, db: Session = Depends(get_db)):
+    """
+    - Accepts a WebSocket connection at /ws/sentiment/{call_id}
+    - Seeds the stream from the stored sentiment (or a small positive baseline)
+    - Emits an updated sentiment value once per second for ~2 minutes
+    - Values follow a bounded random walk in [-1, 1]
+    """
     await websocket.accept()
     
     call = db.query(Call).filter(Call.call_id == call_id).first()
