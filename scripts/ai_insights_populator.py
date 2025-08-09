@@ -1,0 +1,71 @@
+import os
+from sqlalchemy.orm import Session
+from app.db.session import SessionLocal
+from app.models.call import Call
+from sentence_transformers import SentenceTransformer
+from transformers import pipeline
+import numpy as np
+
+MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_BATCH_SIZE = 32
+
+def compute_agent_talk_ratio(transcript: str) -> float:
+    agent_lines = [line for line in transcript.splitlines() if line.startswith("**Customer Service Agent:**")]
+    words_agent = sum(len(line.split()) for line in agent_lines)
+    total_words = len(transcript.split())
+    return (words_agent / total_words) if total_words else 0.0
+
+def normalize_sentiment(label_score):
+    label = label_score["label"].lower()
+    score = label_score["score"]
+    if "neg" in label:
+        return -score
+    return score
+
+def main():
+    session: Session = SessionLocal()
+
+    # Step 1: Load models
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    sentiment_pipeline = pipeline(
+        "sentiment-analysis",
+        model="distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+        device=-1,
+        truncation=True
+    )
+
+    print("Processing calls for analytics...")
+
+    calls_to_process = session.query(Call).filter(Call.embedding.is_(None)).all()
+    
+    for i in range(0, len(calls_to_process), EMBEDDING_BATCH_SIZE):
+        chunk = calls_to_process[i:i + EMBEDDING_BATCH_SIZE]
+        transcripts = [c.transcript or "" for c in chunk]
+
+        # Step 2: Create embeddings
+        embeddings = model.encode(
+            transcripts,
+            batch_size=EMBEDDING_BATCH_SIZE,
+            convert_to_numpy=True,
+            show_progress_bar=True,
+        )
+
+        for idx, call in enumerate(chunk):
+            
+            text_for_sent = call.transcript[:512] if call.transcript else ""
+            sentiment = sentiment_pipeline(text_for_sent)[0]
+
+            # Step 3: Update table data
+            call.embedding = embeddings[idx].tolist()
+            call.customer_sentiment_score = normalize_sentiment(sentiment)
+            call.agent_talk_ratio = compute_agent_talk_ratio(call.transcript or "")
+            session.add(call)
+
+        session.commit()
+        print(f"Updated {len(chunk)} calls.")
+
+    session.close()
+    print("Processing complete.")
+
+if __name__ == "__main__":
+    main()

@@ -32,6 +32,7 @@ def upgrade():
     )
     op.create_index('ix_calls_agent_id', 'calls', ['agent_id'], unique=False)
     op.create_index('ix_calls_start_time', 'calls', ['start_time'], unique=False)
+    # I am going ahead with pg_trgm, because it provides a fuzzy search which is typo tolerant. 
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
     op.create_index(
         'ix_calls_transcript_gin',
