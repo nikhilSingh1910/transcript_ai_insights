@@ -1,24 +1,20 @@
 from __future__ import annotations
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
-from typing import List
-import os
+
 import math
+import os
+from typing import List
+
 import numpy as np
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import and_, func
+from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.call import Call
-from app.schemas.call import (
-    CallListQuery,
-    CallListResponse,
-    CallBase,
-    CallDetail,
-    RecommendationsResponse,
-    RecommendationItem,
-    AgentsLeaderboardResponse,
-    AgentAggregate,
-)
+from app.schemas.call import (AgentAggregate, AgentsLeaderboardResponse,
+                              CallBase, CallDetail, CallListQuery,
+                              CallListResponse, RecommendationItem,
+                              RecommendationsResponse)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if OPENAI_API_KEY:

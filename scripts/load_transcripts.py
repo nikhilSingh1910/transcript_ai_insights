@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
+
 from sqlalchemy.orm import Session
+
 from app.db.session import SessionLocal
 from app.models.call import Call
 

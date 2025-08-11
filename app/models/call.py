@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, DateTime, Integer, Text, Float
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()

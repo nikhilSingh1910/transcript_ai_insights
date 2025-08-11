@@ -1,19 +1,19 @@
 # tests/conftest.py
+import math
 import os
 import uuid
-import math
-import pytest
 from datetime import datetime, timedelta
 from typing import List
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from main import app
 from app.api.v1 import endpoints as ep  # to override get_db
 from app.models.call import Base, Call
+from main import app
 
 TEST_DB_URL = (
     "postgresql://nikhilsingh:new_password@localhost:5432/transcript_ai_insights_test"

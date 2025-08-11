@@ -1,11 +1,12 @@
 import asyncio
 import json
-from datetime import datetime, timedelta
-from faker import Faker
-import random
-import openai
 import os
+import random
+from datetime import datetime, timedelta
 from threading import Lock
+
+import openai
+from faker import Faker
 
 fake = Faker()
 openai.api_key = os.getenv("OPENAI_API_KEY")

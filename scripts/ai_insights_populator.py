@@ -1,10 +1,12 @@
 import os
+
+import numpy as np
+from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import Session
+from transformers import pipeline
+
 from app.db.session import SessionLocal
 from app.models.call import Call
-from sentence_transformers import SentenceTransformer
-from transformers import pipeline
-import numpy as np
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_BATCH_SIZE = 32

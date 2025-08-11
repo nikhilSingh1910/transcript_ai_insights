@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+
 from app.api.v1.endpoints import router as api_router
 from app.api.v1.ws import ws_router
-from app.core.scheduler import start_scheduler, shutdown_scheduler
+from app.core.scheduler import shutdown_scheduler, start_scheduler
 
 app = FastAPI(title="Call Analytics API", version="1.0.0")
 # Attach the REST API routes (v1) to the app

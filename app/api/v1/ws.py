@@ -2,11 +2,12 @@ import asyncio
 import json
 import random
 from datetime import datetime, timezone
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.call import Call
-from sqlalchemy.orm import Session
 
 ws_router = APIRouter()
 
