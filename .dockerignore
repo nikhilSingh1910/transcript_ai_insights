@@ -1,0 +1,9 @@
+.git
+__pycache__/
+.venv/
+.pytest_cache/
+*.pyc
+*.pyo
+datasets/
+data/
+

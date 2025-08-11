@@ -75,7 +75,7 @@ jobs:
       - name: Run Alembic migrations (test DB)
         run: DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head
 
-      - name: Install type stubs
+      - name: Install type-pytz
         run: pip install types-pytz
 
       - name: Lint & Type Check (isort before black)
