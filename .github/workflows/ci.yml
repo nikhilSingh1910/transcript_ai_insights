@@ -71,10 +71,10 @@ jobs:
       - name: Run Alembic migrations (test DB)
         run: DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head
 
-      - name: Lint & Type Check
+      - name: Lint & Type Check (isort before black)
         run: |
+          isort --check-only --profile black .
           black --check .
-          isort --check-only .
           mypy app
 
       - name: Run tests with coverage
