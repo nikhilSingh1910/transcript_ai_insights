@@ -49,6 +49,10 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov mypy black isort
 
+      - name: Install type stubs (optional)
+        run: |
+          mypy --install-types --non-interactive || true
+
       - name: Wait for Postgres
         run: |
           for i in {1..30}; do

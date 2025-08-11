@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
+from app.db import SessionLocal
 from app.models.call import Call
 
 ws_router = APIRouter()

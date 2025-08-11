@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
+from app.db import SessionLocal
 from app.models.call import Call
 from app.schemas.call import (
     AgentAggregate,
@@ -102,7 +102,7 @@ def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
             # Split lines, sanitize to <= 3 nudges
             lines = [l.strip("-• ").strip() for l in text.splitlines() if l.strip()]
 
-            nudges = []
+            nudges: List[str] = []
             for ln in lines:
                 if len(nudges) >= 3:
                     break
@@ -182,7 +182,9 @@ def get_all_calls(
         q = q.filter(Call.customer_sentiment_score <= max_sentiment)
 
     total = q.count()
-    rows = q.order_by(Call.start_time.desc()).limit(limit).offset(offset).all()
+    rows: List[Call] = (
+        q.order_by(Call.start_time.desc()).limit(limit).offset(offset).all()
+    )
 
     items = [
         CallBase(
@@ -198,7 +200,7 @@ def get_all_calls(
         )
         for r in rows
     ]
-    return {"total": total, "items": items}
+    return CallListResponse(total=total, items=rows)
 
 
 @router.get("/calls/{call_id}", response_model=CallDetail)
@@ -259,7 +261,7 @@ def get_recommendations(call_id: str, db: Session = Depends(get_db)):
     top = scored[:5]
     rec_items = [RecommendationItem(call_id=cid, similarity=sim) for cid, sim in top]
 
-    nudges = _make_nudges(
+    nudges: list[str] = _make_nudges(
         base, [c for c in similar_calls if str(c.call_id) in {cid for cid, _ in top}]
     )
 

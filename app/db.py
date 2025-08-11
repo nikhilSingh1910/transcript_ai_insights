@@ -1,9 +1,12 @@
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 # Read from env so it works locally, in Docker, and in CI
 DATABASE_URL = os.getenv(
