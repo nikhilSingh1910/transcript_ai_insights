@@ -11,10 +11,16 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.call import Call
-from app.schemas.call import (AgentAggregate, AgentsLeaderboardResponse,
-                              CallBase, CallDetail, CallListQuery,
-                              CallListResponse, RecommendationItem,
-                              RecommendationsResponse)
+from app.schemas.call import (
+    AgentAggregate,
+    AgentsLeaderboardResponse,
+    CallBase,
+    CallDetail,
+    CallListQuery,
+    CallListResponse,
+    RecommendationItem,
+    RecommendationsResponse,
+)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if OPENAI_API_KEY:
