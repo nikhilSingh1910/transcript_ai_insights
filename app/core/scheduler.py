@@ -7,11 +7,13 @@ from pytz import timezone
 log = logging.getLogger(__name__)
 scheduler = BackgroundScheduler(timezone=timezone("Asia/Kolkata"))
 
+
 def start_scheduler():
     # Run every night at 02:30 IST
     scheduler.add_job(run_ai_populator, CronTrigger(hour=2, minute=30))
     scheduler.start()
     log.info("Nightly AI insights job scheduled for 02:30 IST.")
+
 
 def run_ai_populator():
     log.info("Starting nightly AI insights populator...")
@@ -27,6 +29,7 @@ def run_ai_populator():
             log.error("AI insights populator failed:\n%s", result.stderr)
     except Exception as e:
         log.exception("Error running AI insights populator: %s", e)
+
 
 def shutdown_scheduler():
     scheduler.shutdown()

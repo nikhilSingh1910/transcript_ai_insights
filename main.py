@@ -9,15 +9,18 @@ app.include_router(api_router)
 # Attach the WebSocket routes (for live sentiment streaming)
 app.include_router(ws_router)
 
+
 # --- Lifecycle Events ---
 # These functions run automatically when the app starts/stops.
 @app.on_event("startup")
 def _startup():
     start_scheduler()
 
+
 @app.on_event("shutdown")
 def _shutdown():
     shutdown_scheduler()
+
 
 # Simple health check endpoint
 @app.get("/healthz")

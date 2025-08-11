@@ -17,11 +17,14 @@ DESTINATION_FILE = "transcripts.jsonl"
 # Thread lock to ensure only one thread writes to the file at a time
 file_lock = Lock()
 
+
 def generate_customer_query():
     """
     Randomly pick a customer query type and return a sentence for it.
     """
-    query_type = random.choice(["order_status", "billing", "account", "technical_issue"])
+    query_type = random.choice(
+        ["order_status", "billing", "account", "technical_issue"]
+    )
     if query_type == "order_status":
         return f"Can you update me on the status of my order #ORD{fake.random_number(digits=6)}?"
     elif query_type == "billing":
@@ -30,6 +33,7 @@ def generate_customer_query():
         return f"I'm unable to log into my account. Could you help me with a password reset?"
     elif query_type == "technical_issue":
         return f"I'm experiencing issues with the {fake.word()} feature. It’s not working correctly."
+
 
 async def generate_transcript_with_llm(call_id: str, customer_id: str, agent_id: str):
     language = "English"
@@ -55,7 +59,7 @@ async def generate_transcript_with_llm(call_id: str, customer_id: str, agent_id:
             "language": language,
             "start_time": start_time.isoformat(),
             "duration_seconds": duration_seconds,
-            "transcript": cleaned_response
+            "transcript": cleaned_response,
         }
 
         # Write to file asynchronously
@@ -64,6 +68,7 @@ async def generate_transcript_with_llm(call_id: str, customer_id: str, agent_id:
     except Exception as e:
         print(f"Error generating transcript for call_id={call_id}: {e}")
 
+
 def write_line_to_file(transcript):
     """
     Write a single transcript as JSON to the transcripts file.
@@ -71,10 +76,11 @@ def write_line_to_file(transcript):
     """
     line = json.dumps(transcript)
     with file_lock:
-        with open(DESTINATION_FILE, 'a') as f:
+        with open(DESTINATION_FILE, "a") as f:
             f.write(line + "\n")
             f.flush()
     print(f"Saved transcript for call_id={transcript['call_id']}")
+
 
 async def generate_synthetic_transcripts(num_transcripts=200):
     """
@@ -90,8 +96,10 @@ async def generate_synthetic_transcripts(num_transcripts=200):
         tasks.append(transcript)
     await asyncio.gather(*tasks)
 
+
 async def main():
     await generate_synthetic_transcripts()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

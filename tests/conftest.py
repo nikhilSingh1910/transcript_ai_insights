@@ -11,23 +11,30 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from main import app                     
-from app.api.v1 import endpoints as ep   # to override get_db
+from main import app
+from app.api.v1 import endpoints as ep  # to override get_db
 from app.models.call import Base, Call
 
-TEST_DB_URL = "postgresql://nikhilsingh:new_password@localhost:5432/transcript_ai_insights_test"
+TEST_DB_URL = (
+    "postgresql://nikhilsingh:new_password@localhost:5432/transcript_ai_insights_test"
+)
+
 
 def _unit_vec(seed: int, dim: int = 384) -> List[float]:
     import random
+
     r = random.Random(seed)
     v = [r.random() for _ in range(dim)]
-    norm = math.sqrt(sum(x*x for x in v)) or 1.0
+    norm = math.sqrt(sum(x * x for x in v)) or 1.0
     return [x / norm for x in v]
+
 
 @pytest.fixture(scope="session")
 def db_engine():
     if not TEST_DB_URL:
-        pytest.skip("Set TEST_DATABASE_URL to run DB-backed tests (ARRAY(Float) requires Postgres).")
+        pytest.skip(
+            "Set TEST_DATABASE_URL to run DB-backed tests (ARRAY(Float) requires Postgres)."
+        )
     engine = create_engine(TEST_DB_URL, poolclass=NullPool, future=True)
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
@@ -35,11 +42,13 @@ def db_engine():
     yield engine
     engine.dispose()
 
+
 @pytest.fixture(scope="session")
 def db_session_factory(db_engine):
     Base.metadata.drop_all(db_engine)
     Base.metadata.create_all(db_engine)
     return sessionmaker(bind=db_engine, autoflush=False, autocommit=False)
+
 
 @pytest.fixture(scope="function")
 def db_session(db_session_factory):
@@ -48,6 +57,7 @@ def db_session(db_session_factory):
         yield session
     finally:
         session.close()
+
 
 @pytest.fixture(scope="function")
 def client(db_session, monkeypatch) -> TestClient:
@@ -112,6 +122,7 @@ def client(db_session, monkeypatch) -> TestClient:
             yield db_session
         finally:
             pass
+
     app.dependency_overrides[ep.get_db] = override_get_db
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)

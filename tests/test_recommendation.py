@@ -6,6 +6,7 @@ def _find_with_embedding(client):
             return it["call_id"]
     return None
 
+
 def test_recommendations_ok(client):
     call_id = _find_with_embedding(client)
     assert call_id is not None

@@ -1,6 +1,7 @@
 import json
 import pytest
 
+
 @pytest.mark.timeout(10)
 def test_ws_sentiment_stream(client):
     # Grab any existing call_id

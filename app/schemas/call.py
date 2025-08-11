@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime, date
 from pydantic import BaseModel, Field, conint, confloat
 
+
 # Query Schemas
 class CallListQuery(BaseModel):
     limit: conint(ge=1, le=200) = 50
@@ -26,27 +27,33 @@ class CallBase(BaseModel):
     agent_talk_ratio: Optional[float] = Field(None, ge=0, le=1)
     customer_sentiment_score: Optional[float] = Field(None, ge=-1, le=1)
 
+
 class CallDetail(CallBase):
     embedding: Optional[list[float]] = None
+
 
 class CallListResponse(BaseModel):
     total: int
     items: List[CallBase]
 
+
 class RecommendationItem(BaseModel):
     call_id: str
     similarity: float = Field(..., ge=0, le=1)
+
 
 class RecommendationsResponse(BaseModel):
     base_call_id: str
     recommendations: List[RecommendationItem]
     coaching_nudges: List[str]
 
+
 class AgentAggregate(BaseModel):
     agent_id: str
     avg_sentiment: Optional[float]
     avg_talk_ratio: Optional[float]
     total_calls: int
+
 
 class AgentsLeaderboardResponse(BaseModel):
     items: List[AgentAggregate]

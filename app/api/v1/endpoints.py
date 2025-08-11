@@ -10,20 +10,28 @@ import numpy as np
 from app.db.session import SessionLocal
 from app.models.call import Call
 from app.schemas.call import (
-    CallListQuery, CallListResponse, CallBase, CallDetail,
-    RecommendationsResponse, RecommendationItem, AgentsLeaderboardResponse, AgentAggregate
+    CallListQuery,
+    CallListResponse,
+    CallBase,
+    CallDetail,
+    RecommendationsResponse,
+    RecommendationItem,
+    AgentsLeaderboardResponse,
+    AgentAggregate,
 )
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if OPENAI_API_KEY:
     try:
         import openai
+
         openai.api_key = OPENAI_API_KEY
     except Exception:
         OPENAI_API_KEY = None
 
 # API router for all `/api/v1/calls` endpoints
 router = APIRouter(prefix="/api/v1", tags=["calls"])
+
 
 def get_db():
     db = SessionLocal()
@@ -32,19 +40,22 @@ def get_db():
     finally:
         db.close()
 
+
 # Helper functions
+
 
 def _cosine_similarity_calculator(a: np.ndarray, b: np.ndarray) -> float:
     """
     Compute cosine similarity between two embedding vectors.
     Returns 0.0 if either vector has zero length.
     """
-    denom = (np.linalg.norm(a) * np.linalg.norm(b))
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
 
     if denom == 0.0:
         return 0.0
 
     return float(np.dot(a, b) / denom)
+
 
 def _to_np(vec):
     """
@@ -56,11 +67,12 @@ def _to_np(vec):
     except Exception:
         return None
 
+
 def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
     """
     Generate ≤ 3 short coaching nudges ≤ 40 words each. If OPENAI_API_KEY is present, ask for 3 nudges; else rule-based.
     """
-    
+
     sent = call.customer_sentiment_score
     ratio = call.agent_talk_ratio
     transcript = (call.transcript or "")[:600]
@@ -105,22 +117,36 @@ def _make_nudges(call: Call, neighbors: list[Call]) -> list[str]:
     nudges = []
     if ratio is not None:
         if ratio > 0.65:
-            nudges.append("Talk less; ask one open-ended question after each explanation to invite the customer to speak more.")
+            nudges.append(
+                "Talk less; ask one open-ended question after each explanation to invite the customer to speak more."
+            )
         elif ratio < 0.35:
-            nudges.append("Guide the call with a brief summary and propose next steps to keep momentum.")
+            nudges.append(
+                "Guide the call with a brief summary and propose next steps to keep momentum."
+            )
     if sent is not None:
         if sent < -0.2:
-            nudges.append("Acknowledge frustration explicitly, then offer a clear fix and a time-bound follow-up.")
+            nudges.append(
+                "Acknowledge frustration explicitly, then offer a clear fix and a time-bound follow-up."
+            )
         elif sent < 0.2:
-            nudges.append("Check for understanding and confirm value before closing to lift sentiment.")
+            nudges.append(
+                "Check for understanding and confirm value before closing to lift sentiment."
+            )
         else:
-            nudges.append("Reinforce benefits and confirm next step while the customer is positive.")
+            nudges.append(
+                "Reinforce benefits and confirm next step while the customer is positive."
+            )
     if not nudges:
-        nudges.append("Clarify the problem, confirm expectations, and summarize next actions in one sentence.")
+        nudges.append(
+            "Clarify the problem, confirm expectations, and summarize next actions in one sentence."
+        )
     # ensure 3 max
     return nudges[:3]
 
-# API Endpoints 
+
+# API Endpoints
+
 
 @router.get("/calls", response_model=CallListResponse)
 def get_all_calls(
@@ -231,12 +257,14 @@ def get_recommendations(call_id: str, db: Session = Depends(get_db)):
     top = scored[:5]
     rec_items = [RecommendationItem(call_id=cid, similarity=sim) for cid, sim in top]
 
-    nudges = _make_nudges(base, [c for c in similar_calls if str(c.call_id) in {cid for cid, _ in top}])
+    nudges = _make_nudges(
+        base, [c for c in similar_calls if str(c.call_id) in {cid for cid, _ in top}]
+    )
 
     return RecommendationsResponse(
         base_call_id=str(base.call_id),
         recommendations=rec_items,
-        coaching_nudges=nudges
+        coaching_nudges=nudges,
     )
 
 

@@ -9,19 +9,25 @@ import numpy as np
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_BATCH_SIZE = 32
 
+
 def compute_agent_talk_ratio(transcript: str) -> float:
     """
     Calculate the ratio of words spoken by the agent
     compared to the total number of words in the transcript.
-    
+
     - Only counts lines starting with "**Customer Service Agent:**"
     - Returns a value between 0 and 1.
     """
-    agent_lines = [line for line in transcript.splitlines() if line.startswith("**Customer Service Agent:**")]
+    agent_lines = [
+        line
+        for line in transcript.splitlines()
+        if line.startswith("**Customer Service Agent:**")
+    ]
     words_agent = sum(len(line.split()) for line in agent_lines)
     total_words = len(transcript.split())
-    
+
     return (words_agent / total_words) if total_words else 0.0
+
 
 def normalize_sentiment(label_score):
     """
@@ -35,6 +41,7 @@ def normalize_sentiment(label_score):
     if "neg" in label:
         return -score
     return score
+
 
 def main():
     """
@@ -51,16 +58,16 @@ def main():
         "sentiment-analysis",
         model="distilbert/distilbert-base-uncased-finetuned-sst-2-english",
         device=-1,
-        truncation=True
+        truncation=True,
     )
 
     print("Processing calls for analytics...")
 
     # Srep 2: retreive calls from DB
     calls_to_process = session.query(Call).filter(Call.embedding.is_(None)).all()
-    
+
     for i in range(0, len(calls_to_process), EMBEDDING_BATCH_SIZE):
-        chunk = calls_to_process[i:i + EMBEDDING_BATCH_SIZE]
+        chunk = calls_to_process[i : i + EMBEDDING_BATCH_SIZE]
         transcripts = [c.transcript or "" for c in chunk]
 
         # Step 3: Create embeddings
@@ -72,7 +79,7 @@ def main():
         )
 
         for idx, call in enumerate(chunk):
-            
+
             text_for_sent = call.transcript[:512] if call.transcript else ""
             sentiment = sentiment_pipeline(text_for_sent)[0]
 
@@ -87,6 +94,7 @@ def main():
 
     session.close()
     print("Processing complete.")
+
 
 if __name__ == "__main__":
     main()
