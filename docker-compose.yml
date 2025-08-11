@@ -28,7 +28,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://nikhilsingh:new_password@db:5432/transcript_ai_insights
+      DATABASE_URL: postgresql://nikhilsingh:new_password@db:5432/transcript_ai_insights
       # OPENAI_API_KEY comes from .env
     ports:
       - "8000:8000"
