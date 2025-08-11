@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: call-analytics-db
+    environment:
+      POSTGRES_USER: nikhilsingh
+      POSTGRES_PASSWORD: new_password
+      POSTGRES_DB: transcript_ai_insights
+    ports:
+      - "5432:5432"   # Server: Container, so if server's 5432 is busy, replace it with some other port
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nikhilsingh -d transcript_ai_insights"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./infra/initdb/01_extensions.sql:/docker-entrypoint-initdb.d/01_extensions.sql:ro
+
+  api:
+    build: .
+    container_name: call-analytics-api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nikhilsingh:new_password@db:5432/transcript_ai_insights
+      # OPENAI_API_KEY comes from .env
+    ports:
+      - "8000:8000"
+    command: >
+      bash -lc "alembic upgrade head &&
+                uvicorn main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  pg_data:
