@@ -1,5 +1,33 @@
+# Call Analytics Microservice: Steps to Run with docker
+---
 
-# Call Analytics Microservice
+## 1) Put your OPENAI_API_KEY and DATABASE_URL in .env (as in your README)
+    eg, 
+    DATABASE_URL: postgresql://nikhilsingh:new_password@db:5432/transcript_ai_insights
+    OPENAI_API_KEY: sk-proj-f2CkMJaG9itfrD_NaxLjauxaRFmCo...
+---
+
+## 2) Build and Start
+````markdown
+docker compose up -d --build
+````
+---
+
+## 3) (first run) Seed Data and Populate AI Insights inside the container's DB:
+````markdown
+docker compose exec api bash -lc "PYTHONPATH=. python3 scripts/synthetic_transcript_generator.py && \
+                                  PYTHONPATH=. python3 scripts/load_transcripts.py && \
+                                  PYTHONPATH=. python3 scripts/ai_insights_populator.py"
+````
+---
+
+## 4) Verify
+````markdown
+Visit: http://localhost:8000/docs
+````
+---
+
+# Call Analytics Microservice: Steps to Run without docker
 ````markdown
 An asynchronous pipeline with PostgreSQL and FastAPI that ingests sales-call transcripts, stores them durably, and serves actionable conversation analytics (embeddings, sentiment, talk ratio) via REST APIs and WebSockets.
 ````
