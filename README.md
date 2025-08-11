@@ -1,3 +1,7 @@
+
+[![CI](https://github.com/nikhilSingh1910/transcript_ai_insights/actions/workflows/ci.yml/badge.svg)](https://github.com/nikhilSingh1910/transcript_ai_insights/actions/workflows/ci.yml)
+
+
 # Call Analytics Microservice: Steps to Run with docker
 ---
 
